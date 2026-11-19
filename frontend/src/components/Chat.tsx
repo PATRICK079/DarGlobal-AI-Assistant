@@ -168,7 +168,7 @@ export default function Chat() {
         <div className="welcome">
           <h2 id="chat-welcome">Your property search starts here.</h2>
           <p>Ask about DarGlobal developments or find Wasalt properties to buy or rent.</p>
-          <p>This proof of concept covers Wasalt listings in Riyadh, Jeddah, Dammam, Al Khobar, and Makkah. It indexes only the first page of each Wasalt catalogue.</p>
+          <p>This proof of concept covers Wasalt listings in Riyadh, Jeddah, Dammam, Al Khobar, and Makkah. It uses listings from the first page of each Wasalt catalogue.</p>
           <button className="start-chat" type="button" disabled={!historyLoaded} onClick={() => openChat()}>
             {messages.length || pending ? "Resume chat" : "Start chat"}
           </button>
