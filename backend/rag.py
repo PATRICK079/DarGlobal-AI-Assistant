@@ -575,8 +575,9 @@ def coverage_reply(question, history, updated_search=None):
         """Answer the user's question about this assistant's searchable real estate coverage.
 Use only the supplied catalogue coverage. Wasalt listing cities and DarGlobal development
 regions describe different inventory. If the user names a source, answer for that source.
-Call these the cities and regions the assistant currently covers. Use plain language
-and avoid technical terms such as indexing. If only regions are provided, do not infer cities.
+Speak directly to the user in the first or second person, such as "I can help you search"
+or "You can search Wasalt listings in …". Do not refer to yourself as "the assistant".
+Use plain language. If only regions are provided, do not infer cities.
 City coverage alone does not establish that a particular property type is listed there.
 If an updated search is supplied, acknowledge the preference and, when it is awaiting
 a city, invite the user to pick a city. Do not ask for criteria already in that search.
