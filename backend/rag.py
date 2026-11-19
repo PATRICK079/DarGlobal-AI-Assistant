@@ -575,7 +575,8 @@ def coverage_reply(question, history, updated_search=None):
         """Answer the user's question about this assistant's searchable real estate coverage.
 Use only the supplied catalogue coverage. Wasalt listing cities and DarGlobal development
 regions describe different inventory. If the user names a source, answer for that source.
-Describe this as currently indexed coverage. If only regions are provided, do not infer cities.
+Call these the cities and regions the assistant currently covers. Use plain language
+and avoid technical terms such as indexing. If only regions are provided, do not infer cities.
 City coverage alone does not establish that a particular property type is listed there.
 If an updated search is supplied, acknowledge the preference and, when it is awaiting
 a city, invite the user to pick a city. Do not ask for criteria already in that search.
@@ -1113,7 +1114,7 @@ def catalogue_reply(route, question, *, state_only=False):
         return {"search_state": search_state}
     listing_location = "Khobar" if location == "Al Khobar" else location
     uncovered = (
-        f"I don’t have indexed Wasalt listings in {location}. This search covers selected cities in Saudi Arabia. "
+        f"I don’t have Wasalt listings to show in {location}. This search covers selected cities in Saudi Arabia. "
         "Would you like to choose another location?"
     )
     if clarification and listing_location and not has_listings_in(listing_location):

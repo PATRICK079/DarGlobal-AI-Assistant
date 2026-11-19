@@ -1,3 +1,0 @@
--r backend/requirements.txt
-beautifulsoup4>=4.13,<5
-pypdf>=5,<7

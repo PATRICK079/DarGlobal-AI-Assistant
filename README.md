@@ -1,95 +1,51 @@
 # DarGlobal Property Assistant
 
-A Next.js chat UI for public DarGlobal developments and Wasalt listings. FastAPI looks up relevant passages in Supabase pgvector and asks OpenRouter’s free model router to answer using those passages. The assistant can provide a direct listing link when requested.
+DarGlobal Property Assistant is a proof-of-concept (POC) AI chatbot that helps users explore DarGlobal developments and search for properties listed on Wasalt.
 
-## Property search
+**Live demo:** https://darglobal-frontend-production.up.railway.app
 
-Ask “Show me apartments in Riyadh under SAR 800,000” to see structured Wasalt
-results. Ask “List properties” to choose residential or commercial and then rent
-or buy. If you already know, ask “Show commercial properties for rent in Riyadh.”
-Catalogue search uses SQL filters for category, location, property type,
-transaction, price in SAR, and bedroom count. Rental cards show the advertised
-billing period, and rental price comparisons use the selected period. Cards link to the
-original listings and show a photo only when it was associated with that listing
-on the source page. Asking prices reflect the scrape date.
+## Key Features
 
-Development and amenity questions still use vector search. DarGlobal project
-pages and filings provide development information. Wasalt ingestion collects
-listings for sale and rent from Riyadh, Jeddah, Dammam, Al Khobar, and Makkah. The residential search pages
-also show other types, so ingestion includes only clearly residential listing
-types from those pages. Ingestion reads the first page of each catalogue. The `--wasalt-limit` cap
-applies per city, category, and transaction.
+- Search properties by city, price, property type, and number of bedrooms.
+- Find properties available for sale or rent.
+- Ask questions in natural language and refine searches through conversation.
+- Explore DarGlobal developments and company information.
+- Open original Wasalt listings for more details.
 
-For an existing Supabase setup, rerun `schema.sql` to update the listing view
-and add listing metadata. Existing Wasalt apartment records remain searchable.
-Rerun `python ingestion.py --source wasalt` to populate the expanded catalogue.
+## Technology Stack
 
-The chat answers company questions from scraped DarGlobal company pages and
-its published regulatory filing, plus Wasalt's corporate page and FAQ. The
-scraper skips sources it cannot access and reports them on stderr.
-Run `python ingestion.py --companies-only` to refresh company profiles and
-public contact details. Add `--dry-run` to preview the records without writing
-to Supabase. Contacts retain their source URL. A phone number is recorded as
-WhatsApp only when the source publishes a direct WhatsApp link.
-Ingestion uses local headless Chrome or Chromium for DarGlobal's About and FAQ
-pages when available. Set `CHROME_BINARY` to a custom executable path if needed.
+- **Frontend:** Next.js, React, TypeScript
+- **Backend:** Python, FastAPI
+- **Database:** Supabase PostgreSQL and pgvector
+- **AI:** OpenRouter, with optional OpenAI fallback
+- **Web scraping:** Python, HTTPX, Beautiful Soup
+- **Deployment:** Railway and Docker
 
-## Set up data
+## How It Works
 
-1. Create a Supabase project and run [schema.sql](schema.sql) in its SQL editor. Use the PostgreSQL connection string from the Supabase Connect dialog. The session pooler is an option if your network requires IPv4.
-2. Copy `.env.example` to `.env` and set `DATABASE_URL` and `OPENROUTER_API_KEY`.
-3. Run the ingestion commands from this repository's root.
+1. The user sends a message through the chatbot.
+2. The FastAPI backend processes the request and manages the conversation.
+3. Supabase retrieves matching properties or relevant development information.
+4. The AI generates a response using the retrieved information.
+5. Users can open the original property listings for more details.
 
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-ingestion.txt
-python ingestion.py --dry-run
-python ingestion.py --source wasalt --wasalt-limit 1
-python ingestion.py --source wasalt --wasalt-details
-python ingestion.py
-```
+Property data is collected from Wasalt and DarGlobal sources using a Python scraping pipeline.
 
-The scraper checks robots.txt. If a source denies access or fails, ingestion reports the failure, processes records from the other source, and exits with status 1. Dry-run JSON is printed to stdout and source errors go to stderr. Wasalt records come from public English search cards. If DarGlobal’s project pages are unavailable, the scraper uses Dar Global PLC’s public regulatory filing carried by Investegate. A rerun replaces the chunks for each fetched URL, while older records remain until removed. Asking prices and availability reflect the collection date. The shared embedding model is BAAI/bge-small-en-v1.5 with 384 dimensions.
+## Current POC Architecture
 
-## Run the Docker containers
+For this POC, I kept the project in a **single monorepo** because of the limited development time. This made it easier to build, test, and deploy quickly.
 
-```sh
-docker build -t darglobal-backend ./backend
-docker build -t darglobal-frontend ./frontend
-docker network create darglobal
-docker run --rm -d --name darglobal-backend --network darglobal --env-file .env -e PORT=8000 -e BIND_HOST=0.0.0.0 darglobal-backend
-docker run --rm -d --name darglobal-frontend --network darglobal -e BACKEND_URL=http://darglobal-backend:8000 -p 3000:3000 darglobal-frontend
-```
+The frontend and backend run as separate Railway services, while the scraping pipeline currently runs manually.
 
-Open http://localhost:3000. Create the Docker network once and reuse it for later runs. Stop both containers with `docker stop darglobal-frontend darglobal-backend`.
+## Future Improvements
 
-## Deploy on Railway
+1. **Separate services:** Manage the frontend, backend, and scraper independently to make debugging, maintenance, scaling, and deployment easier.
+2. **Automated scraping:** Schedule the scraping pipeline to collect new properties, update existing listings, and keep the database current.
+3. **Monitoring:** Add logs, error tracking, and alerts to identify issues faster.
+4. **Testing:** Add automated tests for property searches, conversation memory, and multi-city searches.
+5. **Data reliability:** Improve detection of outdated or unavailable listings.
+6. **Long-term scraper tooling.** Evaluate Selenium with headless Chrome or Chromium for approved sources that require JavaScript rendering or browser interaction. Keep HTTPX and Beautiful Soup for pages that expose listing data directly in HTML. For sources that explicitly permit specialized HTTP clients, evaluate Cloudscraper where appropriate. Prefer an approved feed or API for frequent refreshes.
 
-Create both services in the same Railway project and environment, using this repository as the source for each.
+## Conclusion
 
-| Service | Root Directory | Variables |
-| --- | --- | --- |
-| Backend | `/backend` | `DATABASE_URL`, `OPENROUTER_API_KEY`, optional `OPENAI_API_KEY`, `PORT=8000`, `BIND_HOST=::` |
-| Frontend | `/frontend` | `BACKEND_URL=http://${{backend.RAILWAY_PRIVATE_DOMAIN}}:8000`, `PORT=3000` |
-
-Use the exact backend service name in the frontend variable reference. Railway detects the Dockerfile in each service's root. Set the backend health check path to `/health` and generate a public HTTPS domain for the frontend.
-
-- [Railway Dockerfile builds](https://docs.railway.com/builds/dockerfiles)
-- [Railway service domains](https://docs.railway.com/networking/domains/working-with-domains)
-## LLM providers and failover
-
-OpenRouter’s `openrouter/free` is the primary provider. Set `OPENROUTER_API_KEY`
-for local development and on the Railway backend. Leave `OPENAI_API_KEY` blank
-to use OpenRouter alone.
-
-To enable the fallback, set `OPENAI_API_KEY` on the backend. It sends the same
-prompts and property context to OpenAI’s `gpt-4.1-mini` when OpenRouter hits a rate
-limit, times out, returns a server error, or fails to return a usable completion.
-The backend logs when it switches providers. OpenAI API usage is billable.
-Both model names are set in `backend/rag.py`.
-
-- [OpenRouter Free Models Router](https://openrouter.ai/openrouter/free)
-- [OpenAI GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini)
-
-Before submitting the frontend URL, open it in a private window and confirm that both sample questions return grounded answers and that an explicit listing-link request produces a clickable link.
+This POC shows how AI can make property discovery easier through natural conversation. The monorepo helped deliver a working demo within a short timeframe. Separating services and automating the scraping pipeline would make the system easier to maintain and more reliable for production.
