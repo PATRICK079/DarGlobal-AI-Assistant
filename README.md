@@ -2,7 +2,7 @@
 
 DarGlobal Property Assistant is a proof-of-concept (POC) AI chatbot that helps users explore DarGlobal developments and search for properties listed on Wasalt.
 
-**Live demo:** https://darglobal-frontend-production.up.railway.app
+**Live demo:** https://darglobal-production.up.railway.app
 
 ## Key Features
 
@@ -54,11 +54,10 @@ The frontend and backend run as separate Railway services, while the scraping pi
 ## Future Improvements
 
 1. **Separate services:** Manage the frontend, backend, and scraper independently to make debugging, maintenance, scaling, and deployment easier.
-2. **Automated scraping:** Schedule the scraping pipeline to collect new properties, update existing listings, and keep the database current.
+2. **Automated scraping:** Schedule the scraping pipeline to collect new properties, update existing listings, and keep the database current, and use advanced 
 3. **Monitoring:** Add logs, error tracking, and alerts to identify issues faster.
 4. **Testing:** Add automated tests for property searches, conversation memory, and multi-city searches.
 5. **Data reliability:** Improve detection of outdated or unavailable listings.
-6. **Long-term scraper tooling.** Evaluate Selenium with headless Chrome or Chromium for approved sources that require JavaScript rendering or browser interaction. Keep HTTPX and Beautiful Soup for pages that expose listing data directly in HTML. For sources that explicitly permit specialized HTTP clients, evaluate Cloudscraper where appropriate. Prefer an approved feed or API for frequent refreshes.
 
 ## Conclusion
 
