@@ -17,7 +17,7 @@ export type Property = {
   currency: string;
   bedrooms: number | null;
 };
-type SearchState = { location: string | null; page?: number; listing_id?: string | null; awaiting?: "category" | "transaction_type" | "rental_period" | null; filters: Record<string, string | boolean | number | null> };
+type SearchState = { location: string | null; locations?: string[]; intended_use?: "residential" | "commercial" | null; page?: number; listing_id?: string | null; any_city?: boolean; showing_villa_alternatives?: boolean; awaiting?: "category" | "transaction_type" | "rental_period" | "location" | "search_adjustment" | null; filters: Record<string, string | boolean | number | null> };
 export type Reply = { answer: string; sources: Source[]; properties?: Property[]; search_state?: SearchState; has_more?: boolean };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };

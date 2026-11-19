@@ -23,6 +23,7 @@ h1 { font-size: clamp(3rem, 5vw, 6rem); line-height: .99; }
 .hero p { max-width: 31ch; margin-top: 20px; color: #e9edec; line-height: 1.55; }
 .chat-dialog { position: fixed; inset: 0; width: min(850px, calc(100% - 48px)); height: min(600px, calc(100dvh - 48px)); max-width: none; max-height: none; margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: var(--paper); box-shadow: 0 20px 70px #081c2a42; }
 .chat-dialog::backdrop { background: #081c2a70; backdrop-filter: blur(7px); }
+.chat-dialog { font-family: "Lato", Arial, sans-serif; }
 .chat { height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
 .chat-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) auto minmax(44px, 1fr); align-items: center; padding: 8px clamp(12px, 3vw, 40px); border-bottom: 1px solid var(--line); background: white; }
 .chat-brand { padding-inline: 6px; border-radius: 5px; background: var(--ink); }
@@ -56,7 +57,7 @@ button { cursor: pointer; }
 .question { position: relative; background: var(--ink); color: white; margin: 0 0 16px auto; width: fit-content; max-width: min(90%, 44ch); padding: 12px 16px; border-radius: 12px 12px 2px 12px; line-height: 1.5; overflow-wrap: anywhere; }
 .question::after { content: ""; position: absolute; bottom: 0; inset-inline-end: -12px; width: 15px; height: 14px; background: var(--ink); clip-path: path("M 0 0 L 3 0 Q 3 10 15 14 H 0 Z"); }
 .latest-messages { position: absolute; inset-inline-start: 50%; bottom: 12px; transform: translateX(-50%); white-space: nowrap; box-shadow: 0 3px 10px #081c2a38; border: 0; border-radius: 999px; padding: 10px 16px; font-size: .875rem; }
-.answer { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; min-width: 0; }
+.answer { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1rem; line-height: 1.55; min-width: 0; }
 .listing-link { display: inline-block; margin: 10px 12px 0 0; color: #205861; text-underline-offset: 3px; }
 .chat-controls { display: flex; gap: 10px; border-top: 1px solid var(--line); padding: 15px clamp(18px, 5.8vw, 86px) max(13px, env(safe-area-inset-bottom)); background: var(--paper); }
 .clear-chat, .latest-messages { background: var(--ink); color: white; }

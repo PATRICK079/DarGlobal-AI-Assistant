@@ -42,13 +42,25 @@ def company_profiles(companies):
         ).fetchall()
 
 
+def has_listings_in(location):
+    with connect() as connection:
+        return connection.execute(
+            """select exists (
+                   select 1 from public.property_listings
+                   where strpos(lower(location), lower(%s)) > 0
+               ) as covered""",
+            (location,),
+        ).fetchone()["covered"]
+
+
 def search_listings(*, location, property_type, transaction_type, max_price, strict_max,
-                    min_bedrooms, bedrooms, category=None, rental_period=None, price_order=None, page=1):
-    location_pattern = None
-    if location:
-        location_pattern = "%" + location.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+                    min_bedrooms, bedrooms, category=None, rental_period=None, price_order=None, page=1, locations=()):
+    location_patterns = [
+        "%" + city.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        for city in (locations or ([location] if location else []))
+    ]
     params = {
-        "location": location_pattern,
+        "locations": location_patterns,
         "type": property_type,
         "transaction": transaction_type,
         "category": category,
@@ -67,7 +79,7 @@ def search_listings(*, location, property_type, transaction_type, max_price, str
             """select id, url, source, title, image_url, location, price, currency,
                       bedrooms, rental_period, property_type, details, count(*) over () as total
                from public.property_listings
-               where (%(location)s::text is null or location ilike %(location)s)
+               where (cardinality(%(locations)s::text[]) = 0 or location ilike any(%(locations)s::text[]))
                  and (%(type)s::text is null or property_type = %(type)s)
                  and (%(transaction)s::text is null or transaction_type = %(transaction)s)
                  and (%(category)s::text is null or category = %(category)s)
