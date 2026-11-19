@@ -37,6 +37,20 @@ For this POC, I kept the project in a **single monorepo** because of the limited
 
 The frontend and backend run as separate Railway services, while the scraping pipeline currently runs manually.
 
+## Screenshots
+
+### Chatbot Interface
+
+![Chatbot Interface](screenshots/chatbot.png)
+
+### Supabase Database
+
+![Supabase Database](screenshots/supabase.png)
+
+### Railway Deployment
+
+![Railway Services](screenshots/railway.png)
+
 ## Future Improvements
 
 1. **Separate services:** Manage the frontend, backend, and scraper independently to make debugging, maintenance, scaling, and deployment easier.
