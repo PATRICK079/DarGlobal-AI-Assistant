@@ -42,6 +42,7 @@ class CatalogueFilters(BaseModel):
 
 class SearchState(BaseModel):
     location: str | None = Field(default=None, max_length=80)
+    awaiting: Literal["category", "transaction_type", "rental_period"] | None = None
     filters: CatalogueFilters
     page: int = Field(default=1, ge=1, le=1000)
     listing_id: str | None = Field(default=None, pattern=r"^[0-9]{1,30}$")
