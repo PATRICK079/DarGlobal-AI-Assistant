@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { ask, type Reply } from "../lib/api";
+import { ask, type Property, type Reply } from "../lib/api";
 
 type Exchange = { question: string; reply: Reply };
 const CHAT_STORAGE_KEY = "darglobal-chat-v1";
@@ -19,6 +19,41 @@ const starterQuestions = [
   "Find commercial rentals in Jeddah",
 ];
 
+function PropertyResults({ properties }: { properties?: Property[] }) {
+  if (!properties?.length) return null;
+  return (
+    <ol className="property-results" aria-label="Matching properties">
+      {properties.map((property) => (
+        <li key={property.id}>
+          <h3>{property.title}</h3>
+          <div className="property-details">
+            {property.price !== null && (
+              <p>
+                <strong>Price:</strong> {property.currency} {property.price.toLocaleString("en-US")}
+                {property.rental_period && ` ${property.rental_period}`}
+              </p>
+            )}
+            {property.location && <p><strong>Location:</strong> {property.location}</p>}
+            {property.bedrooms !== null && <p><strong>Bedrooms:</strong> {property.bedrooms}</p>}
+            {property.details?.area_sqm && (
+              <p>
+                <strong>Area:</strong> {property.details.area_sqm.toLocaleString("en-US")} sqm {property.details.area_type}
+              </p>
+            )}
+            {Object.entries(property.details?.features ?? {}).map(([name, value]) => (
+              <p key={name}><strong>{name}:</strong> {value}</p>
+            ))}
+          </div>
+          <p className="property-view">
+            View it here:{" "}
+            <a href={property.url} target="_blank" rel="noreferrer">{property.title}</a>
+          </p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export default function Chat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Exchange[]>([]);
@@ -26,6 +61,7 @@ export default function Chat() {
   const [showHome, setShowHome] = useState(true);
   const [pending, setPending] = useState("");
   const [partialAnswer, setPartialAnswer] = useState("");
+  const [partialProperties, setPartialProperties] = useState<Property[]>([]);
   const [error, setError] = useState("");
   const [showLatest, setShowLatest] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -76,7 +112,7 @@ export default function Chat() {
       const panel = conversation.current;
       panel?.scrollTo({ top: panel.scrollHeight });
     }
-  }, [messages, pending, partialAnswer, error, showHome]);
+  }, [messages, pending, partialAnswer, partialProperties, error, showHome]);
 
   function trackScroll(panel: HTMLDivElement) {
     const nearBottom = panel.scrollHeight - panel.clientHeight - panel.scrollTop <= 48;
@@ -122,7 +158,12 @@ export default function Chat() {
         for (let index = 0; index < words.length && !request.signal.aborted; index += batchSize) {
           visible += words.slice(index, index + batchSize).join("");
           setPartialAnswer(visible);
-          await new Promise<void>((resolve) => setTimeout(resolve, 30));
+          await new Promise<void>((resolve) => setTimeout(resolve, 65));
+        }
+        const properties = reply.properties ?? [];
+        for (let count = 1; count < properties.length && !request.signal.aborted; count += 1) {
+          setPartialProperties(properties.slice(0, count));
+          await new Promise<void>((resolve) => setTimeout(resolve, 120));
         }
       }
       if (!request.signal.aborted) {
@@ -138,6 +179,7 @@ export default function Chat() {
         activeRequest.current = null;
         setPending("");
         setPartialAnswer("");
+        setPartialProperties([]);
       }
     }
   }
@@ -151,6 +193,7 @@ export default function Chat() {
     setInput("");
     setPending("");
     setPartialAnswer("");
+    setPartialProperties([]);
     setError("");
     questionInput.current?.focus();
   }
@@ -218,37 +261,7 @@ export default function Chat() {
                   <p className="question">{question}</p>
                   <div className="assistant-row assistant-response">
                     <p className="answer">{reply.answer}</p>
-                    {Boolean(reply.properties?.length) && (
-                      <ol className="property-results" aria-label="Matching properties">
-                        {reply.properties?.map((property) => (
-                          <li key={property.id}>
-                            <h3>{property.title}</h3>
-                            <div className="property-details">
-                              {property.price !== null && (
-                                <p>
-                                  <strong>Price:</strong> {property.currency} {property.price.toLocaleString("en-US")}
-                                  {property.rental_period && ` ${property.rental_period}`}
-                                </p>
-                              )}
-                              {property.location && <p><strong>Location:</strong> {property.location}</p>}
-                              {property.bedrooms !== null && <p><strong>Bedrooms:</strong> {property.bedrooms}</p>}
-                              {property.details?.area_sqm && (
-                                <p>
-                                  <strong>Area:</strong> {property.details.area_sqm.toLocaleString("en-US")} sqm {property.details.area_type}
-                                </p>
-                              )}
-                              {Object.entries(property.details?.features ?? {}).map(([name, value]) => (
-                                <p key={name}><strong>{name}:</strong> {value}</p>
-                              ))}
-                            </div>
-                            <p className="property-view">
-                              View it here:{" "}
-                              <a href={property.url} target="_blank" rel="noreferrer">{property.title}</a>
-                            </p>
-                          </li>
-                        ))}
-                      </ol>
-                    )}
+                    <PropertyResults properties={reply.properties} />
                   </div>
                   {reply.has_more && index === messages.length - 1 && (
                     <button className="listing-link" type="button" disabled={Boolean(pending)} onClick={() => void submit("Next page")}>
@@ -265,9 +278,10 @@ export default function Chat() {
               {pending && (
                 <div className="exchange">
                   <p className="question">{pending}</p>
-                  {partialAnswer ? (
-                    <div className="assistant-row" aria-hidden="true">
+                  {partialAnswer || partialProperties.length > 0 ? (
+                    <div className="assistant-row assistant-response" aria-hidden="true" inert>
                       <p className="answer">{partialAnswer}</p>
+                      <PropertyResults properties={partialProperties} />
                     </div>
                   ) : (
                     <div className="assistant-row typing-indicator" role="status">
